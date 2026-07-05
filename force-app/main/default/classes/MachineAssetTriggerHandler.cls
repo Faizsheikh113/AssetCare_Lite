@@ -8,7 +8,7 @@ public with sharing class MachineAssetTriggerHandler {
     	MachineAssetService.handleAssetUpdate(newAssets, null, true);
 	}
     
-    public void beforeUpdate(
+    public void afterUpdate(
         List<Machine_Asset__c> newAssets,
         Map<Id,Machine_Asset__c> oldMap
     ){

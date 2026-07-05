@@ -15,19 +15,9 @@
                 <label>Active</label>
             </value>
             <value>
-                <fullName>Breakdown</fullName>
-                <default>false</default>
-                <label>Breakdown</label>
-            </value>
-            <value>
                 <fullName>Decommissioned</fullName>
                 <default>false</default>
                 <label>Decommissioned</label>
-            </value>
-            <value>
-                <fullName>Draft</fullName>
-                <default>false</default>
-                <label>Draft</label>
             </value>
             <value>
                 <fullName>Inactive</fullName>
@@ -43,11 +33,6 @@
                 <fullName>Pending Installation</fullName>
                 <default>false</default>
                 <label>Pending Installation</label>
-            </value>
-            <value>
-                <fullName>Scrapped</fullName>
-                <default>false</default>
-                <label>Scrapped</label>
             </value>
             <value>
                 <fullName>Service Due</fullName>

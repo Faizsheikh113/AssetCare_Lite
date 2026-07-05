@@ -120,6 +120,23 @@ public class MachineAssetServiceTest {
         Test.stopTest();
     }
 
+	@isTest
+	static void testValidateSerialNumbers_InBatchDuplicatesBlocked() {
+    	Customer_Site__c site = createSite();
+
+        List<Machine_Asset__c> batch = new List<Machine_Asset__c>{
+            new Machine_Asset__c(Asset_Name__c='Batch A', Customer_Site__c=site.Id, Serial_Number__c='SN-INBATCH-001'),
+            new Machine_Asset__c(Asset_Name__c='Batch B', Customer_Site__c=site.Id, Serial_Number__c='SN-INBATCH-001')
+        };
+    
+        Test.startTest();
+        List<Database.SaveResult> results = Database.insert(batch, false);
+        Test.stopTest();
+    
+        System.assertEquals(false, results[0].isSuccess(), 'First in-batch duplicate must be blocked');
+        System.assertEquals(false, results[1].isSuccess(), 'Second in-batch duplicate must be blocked');
+	}
+
     // ────────────────────────────────────────────────────────
     // TEST 4: handleAssetUpdate — ticket created on Under Maintenance
     // ────────────────────────────────────────────────────────
@@ -187,5 +204,58 @@ public class MachineAssetServiceTest {
 
         System.assertEquals(0, tickets.size(),
             'No ticket for non-maintenance status change');
+    }
+
+    // ────────────────────────────────────────────────────────
+    // TEST 7: testTicketCreationBlocked_WithoutPermission — Check Ticket creation for without permission user for securety.
+    // ────────────────────────────────────────────────────────
+	@isTest
+    static void testTicketCreationBlocked_WithoutPermission() {
+    
+        // ── LANDMINE 1: Mixed DML ──
+        // User is a "setup object". Inserting it in the same transaction as
+        // normal records (Site/Asset) throws MIXED_DML_OPERATION.
+        // Workaround: wrap setup-object DML in runAs(current user).
+        User restrictedUser;
+        System.runAs(new User(Id = UserInfo.getUserId())) {
+            Profile p = [SELECT Id FROM Profile
+                         WHERE Name = 'Minimum Access - Salesforce' LIMIT 1];
+            restrictedUser = new User(
+                Alias             = 'rstrct',
+                LastName          = 'Restricted',
+                Email             = 'restricted@test.example.com',
+                // LANDMINE 2: username must be org-unique — timestamp it
+                Username          = 'restricted' + DateTime.now().getTime() + '@test.example.com',
+                ProfileId         = p.Id,
+                EmailEncodingKey  = 'UTF-8',
+                LanguageLocaleKey = 'en_US',
+                LocaleSidKey      = 'en_US',
+                TimeZoneSidKey    = 'Asia/Kolkata'
+            );
+            insert restrictedUser;
+        }
+    
+        // Data as admin — normal helpers
+        Customer_Site__c site  = createSite();
+        Machine_Asset__c asset = createAsset(site.Id, 'Installed');
+    
+        Test.startTest();
+        System.runAs(restrictedUser) {
+            // Minimum Access profile has ZERO create on Service_Ticket__c.
+            // The asset update itself runs in system mode (plain Apex DML ignores
+            // CRUD), but 'insert as user' inside the trigger enforces the
+            // RUNNING user's permissions → SecurityException → our catch → addError.
+            asset.Asset_Status__c = 'Under Maintenance';
+            Database.SaveResult sr = Database.update(asset, false);
+            
+            System.assertEquals(false, sr.isSuccess(),
+                'Asset update must be blocked when user cannot create tickets');
+            
+            String msg = sr.getErrors()[0].getMessage();   // safe now — we KNOW errors exist
+            System.assert(
+                msg.contains('missing permissions') || msg.contains('Ticket creation failed'),
+                'Expected our custom block message, got: ' + msg);
+        }
+        Test.stopTest();
     }
 }

@@ -128,16 +128,22 @@
     </actionOverrides>
     <actionOverrides>
         <actionName>View</actionName>
-        <type>Default</type>
-    </actionOverrides>
-    <actionOverrides>
-        <actionName>View</actionName>
+        <comment>Action override created by Lightning App Builder during activation.</comment>
+        <content>Machine_Asset_Record_Page1</content>
         <formFactor>Large</formFactor>
-        <type>Default</type>
+        <skipRecordTypeSelect>false</skipRecordTypeSelect>
+        <type>Flexipage</type>
     </actionOverrides>
     <actionOverrides>
         <actionName>View</actionName>
+        <comment>Action override created by Lightning App Builder during activation.</comment>
+        <content>Machine_Asset_Record_Page1</content>
         <formFactor>Small</formFactor>
+        <skipRecordTypeSelect>false</skipRecordTypeSelect>
+        <type>Flexipage</type>
+    </actionOverrides>
+    <actionOverrides>
+        <actionName>View</actionName>
         <type>Default</type>
     </actionOverrides>
     <allowInChatterGroups>false</allowInChatterGroups>
@@ -156,8 +162,9 @@
     <externalSharingModel>ControlledByParent</externalSharingModel>
     <label>Machine Asset</label>
     <nameField>
-        <label>Machine Asset Name</label>
-        <type>Text</type>
+        <displayFormat>ASSET-{0000}</displayFormat>
+        <label>Asset Number</label>
+        <type>AutoNumber</type>
     </nameField>
     <pluralLabel>Machine Assets</pluralLabel>
     <searchLayouts></searchLayouts>

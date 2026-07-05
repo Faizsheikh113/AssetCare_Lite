@@ -10,11 +10,6 @@
         <valueSetDefinition>
             <sorted>false</sorted>
             <value>
-                <fullName>Draft</fullName>
-                <default>true</default>
-                <label>Draft</label>
-            </value>
-            <value>
                 <fullName>Installation In Progress</fullName>
                 <default>false</default>
                 <label>Installation In Progress</label>
@@ -28,16 +23,6 @@
                 <fullName>Maintenance</fullName>
                 <default>false</default>
                 <label>Maintenance</label>
-            </value>
-            <value>
-                <fullName>Inactive</fullName>
-                <default>false</default>
-                <label>Inactive</label>
-            </value>
-            <value>
-                <fullName>Closed</fullName>
-                <default>false</default>
-                <label>Closed</label>
             </value>
             <value>
                 <fullName>Decommissioned</fullName>

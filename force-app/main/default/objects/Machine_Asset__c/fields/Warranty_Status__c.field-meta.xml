@@ -2,12 +2,12 @@
 <CustomField xmlns="http://soap.sforce.com/2006/04/metadata">
     <fullName>Warranty_Status__c</fullName>
     <externalId>false</externalId>
-    <formula>IF(
+    <formula>IF( ISBLANK(Warranty_End__c ), &quot;No Warranty Info&quot;, IF(
     Warranty_End__c &gt;= TODAY(),
     &quot;Active&quot;,
     &quot;Expired&quot;
+)
 )</formula>
-    <formulaTreatBlanksAs>BlankAsZero</formulaTreatBlanksAs>
     <label>Warranty Status</label>
     <required>false</required>
     <trackTrending>false</trackTrending>

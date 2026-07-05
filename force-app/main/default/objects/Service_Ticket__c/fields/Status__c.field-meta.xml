@@ -25,6 +25,11 @@
                 <label>In Progress</label>
             </value>
             <value>
+                <fullName>Open</fullName>
+                <default>false</default>
+                <label>Open</label>
+            </value>
+            <value>
                 <fullName>Resolved</fullName>
                 <default>false</default>
                 <label>Resolved</label>

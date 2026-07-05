@@ -3,7 +3,7 @@
     <fullName>Subject__c</fullName>
     <externalId>false</externalId>
     <label>Subject</label>
-    <length>50</length>
+    <length>100</length>
     <required>true</required>
     <trackTrending>false</trackTrending>
     <type>Text</type>
