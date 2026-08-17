@@ -17,24 +17,39 @@
 
 **Phase 1 (Foundation hardening) — ✅ COMPLETE.** All bugs fixed. Security proven with a restricted-user `runAs` test (user-mode DML throws `SecurityException` — D6). Suite green, ~94% coverage.
 
-**Phase 2 (PM Scheduler) — IN PROGRESS, ~70% done.**
+**Phase 2 (PM Scheduler) — IN PROGRESS, ~85% done.**
 
 Built (Faiz wrote the code himself, guided step by step):
 1. **`PM_Schedule__c` object** — Interval_Days drives the math; `Next_Run__c` formula: blank Last_Run = due TODAY (new schedules run on first night).
-2. **`PMSchedulerService.processDueSchedules()`** — the "brain". Queries due schedules (Active, Next_Run <= TODAY, LIMIT 200) → builds Maintenance tickets (Type='Maintenance', Status='Open', Priority='Medium' — Medium avoids the High-priority validation rule) → **partial-success insert** `Database.insert(tickets, false, AccessLevel.USER_MODE)` → SaveResult loop by index → **stamps `Last_Run__c` ONLY on winners** (D9 — losers stay due and retry automatically tomorrow) → losers reported into returned `List<String>` errors.
+2. **`PMSchedulerService.processDueSchedules()`** — the "brain". Queries due schedules (Active, Next_Run <= TODAY, LIMIT 200) → builds Maintenance tickets (Type='Maintenance', Status='Open', Priority='Medium' — Medium avoids the High-priority validation rule) → **partial-success insert** `Database.insert(tickets, false, AccessLevel.USER_MODE)` → SaveResult loop by index → **stamps `Last_Run__c` ONLY on winners** (D9 — losers stay due and retry automatically tomorrow) → losers reported into returned `List<String>` errors. The duplicate-declaration compile bug is **fixed and committed** (`e80ec84`).
 3. **`PMSchedulerBatch` (implements `Schedulable`)** — the "alarm clock". Calls the brain; if errors exist, emails the admin (queried by profile, never hardcoded). Silence = success (D11).
+4. **`PMSchedulerServiceTest`** — 6 tests, committed: due→ticket+stamp, recently-run→nothing, inactive→nothing, bulk (5 schedules), partial DML failure, empty-queue path.
+5. **`Service_Ticket__c.Machine_Asset__c` made required** — ⚠️ side effect: forced the delete constraint from `SetNull` to `Restrict`. Reverses D8 ("ticket survives asset deletion"). Logged as **D12** in CLAUDE.md — needs Faiz's confirmation this was intentional.
 
-## Immediate next steps (in order)
+## Immediate next steps (in order) — for finishing Phase 2
 
-1. **Verify the last fix is deployed + committed.** Last known issue: a duplicated `List<PM_Schedule__c> schedulesToStamp` declaration in the service (compile error). Fix was instructed. Also optional renames: `activeschedules` → `activeSchedules`, `serviceTicket` → `serviceTickets`.
-2. **Register the nightly job** (Anonymous Apex, run once):
+1. **Register the nightly job** (Anonymous Apex, run once):
    `System.schedule('PM Scheduler - Nightly', '0 0 2 * * ?', new PMSchedulerBatch());`
    ⚠️ **Owed to Faiz:** a simple explanation of the cron expression `'0 0 2 * * ?'` — promised, not yet given.
-3. **Write tests** for service + batch: due → ticket + stamp; not-due → nothing; inactive → nothing; bulk (50); Schedulable execute path; email path.
+2. **Write `PMSchedulerBatchTest`** — service has tests, batch doesn't. Need: Schedulable `execute()` path, and the admin-email path when errors exist.
+3. **Confirm D12** — was making `Machine_Asset__c` required (and the resulting switch to `Restrict`) intentional? If yes, formally retire D8.
 4. Wire D3: Maintenance ticket close → update asset `Last_Maintenance_Date__c` (decide Flow vs trigger, record decision).
-5. Optional stretch: `PM_Alert__e` platform event.
 
-**Open thread:** Faiz said he "has a plan in mind" and never told us what it is. **Ask him!** 😄
+**Phase 2 done-when:** all 4 above complete, tests green ≥90%, committed.
+
+## What's queued next (Phase 3, approved but not started)
+
+- **Point 1 — Flow:** SLA-breach escalation, Record-Triggered Flow (this replaces the Process Builder idea — PB is retired, can't create new ones since 2023).
+- **Point 2 — Platform Event + LWC + Aura:** `PM_Alert__e` fires after 2+ consecutive failed nights; one LWC subscribes via `empApi`; that same alert gets wrapped in one thin Aura component (`c:overdueAlertAura`) — realistic Aura-calls-LWC pattern, not a second app. Plus one Report + Dashboard on `Service_Ticket__c`.
+- Original Phase 3 scope unchanged: SLA Custom Metadata, `Is_Overdue__c` formula, asset health dashboard, ticket list, PM schedule manager, permission sets.
+
+## Queued for later (Phase 3.6 — after Phase 3, not started)
+
+- Approval Process (Admin skill, no code)
+- Email Alerts / Templates (ties into the Phase 3 SLA Flow)
+- Named Credential + one free external API callout
+
+**Open thread:** Faiz said he "has a plan in mind" and never told us what it is. **Ask him!** 😄 (Possibly the required-field change was it — worth asking directly.)
 
 ---
 
